@@ -3,10 +3,15 @@ from datetime import timezone
 
 import jwt
 import requests
+import socket
+from urllib.parse import urlparse
+
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db import connection
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -58,14 +63,46 @@ def archive_list(request):
     archives = Archive.objects.filter(user=request.user).order_by("-created_at")
     return render(request, "archiver/archive_list.html", {"archives": archives})
 
+# Define internal/private IP prefixes to block
+FORBIDDEN_PREFIXES = ('127.', '10.', '172.16.', '192.168.', '169.254.', '0.')
+
+def is_safe_destination(url):
+        """
+        Validates that the URL is public-facing and uses safe protocols.
+        """
+        # 1. Basic format validation
+        validate = URLValidator(schemes=['http', 'https'])
+        try:
+            validate(url)
+        except ValidationError:
+            return False
+
+        parsed_url = urlparse(url)
+        hostname = parsed_url.hostname
+
+        # 2. Prevent DNS Rebinding / Internal IP access
+        try:
+            # Resolve hostname to IP to check against private ranges
+            ip_address = socket.gethostbyname(hostname)
+            
+            if any(ip_address.startswith(p) for p in FORBIDDEN_PREFIXES):
+                return False
+        except (socket.gaierror, AttributeError):
+            return False
+
+        return True
+
 
 @login_required
 def add_archive(request):
     if request.method == "POST":
         url = request.POST.get("url")
         notes = request.POST.get("notes")
+        
+        if not is_safe_destination(url):
+            messages.error(request, f"Failed to archive URL: URL is not valid.")
 
-        if url:
+        if url and is_safe_destination(url):
             try:
                 response = requests.get(url, timeout=10)
                 title = "No Title Found"
