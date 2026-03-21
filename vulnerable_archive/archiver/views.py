@@ -131,11 +131,13 @@ def search_archives(request):
     results = []
 
     if query:
-        sql = f"SELECT archiver_archive.*, auth_user.username FROM archiver_archive JOIN auth_user ON archiver_archive.user_id = auth_user.id WHERE archiver_archive.user_id = {request.user.id} AND title LIKE '%{query}%'"
+        sql = """SELECT archiver_archive.*, auth_user.username FROM archiver_archive 
+                 JOIN auth_user ON archiver_archive.user_id = auth_user.id 
+                 WHERE archiver_archive.user_id = %s AND title LIKE %s"""
 
         try:
             with connection.cursor() as cursor:
-                cursor.execute(sql)
+                cursor.execute(sql, [request.user.id, f"%{query}%"])
                 columns = [col[0] for col in cursor.description]
                 results = [dict(zip(columns, row)) for row in cursor.fetchall()]
         except Exception as e:
