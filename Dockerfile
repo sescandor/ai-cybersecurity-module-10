@@ -22,6 +22,9 @@ COPY vulnerable_archive/ ./vulnerable_archive/
 RUN pip install --upgrade pip && \
     pip install -e .
 
+# Install the required dependencies.
+RUN pip install --no-cache-dir -r ./vulnerable_archive/requirements.txt
+
 # Create directory for SQLite database if it doesn't exist
 RUN mkdir -p /app/vulnerable_archive
 

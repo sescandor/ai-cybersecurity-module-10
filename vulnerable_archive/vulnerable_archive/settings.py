@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+from decouple import config
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -26,6 +27,8 @@ SECRET_KEY = "django-insecure-^3!*dt2xq2vs7+5%)j2&ii@h6tz5sq@mtkji--%2c!4ye2$lhm
 DEBUG = True
 
 ALLOWED_HOSTS = ['0.0.0.0']
+
+JWT_SECRET_KEY = config('ARCHIVER_JWT_SECRET_KEY')
 
 
 # Application definition
