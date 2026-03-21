@@ -31,5 +31,15 @@ WORKDIR /app/vulnerable_archive
 # Expose port 8000
 EXPOSE 8000
 
+# Create a new non-root user and group
+# -S: create a system user (no password)
+# -G: specify the primary group
+RUN groupadd -g 1000 appgroup
+
+# Create a user (e.g., 'appuser' with UID 1000) and assign them to the primary 'appgroup'
+RUN useradd -m -u 1000 -g appgroup -s /bin/bash appuser
+
+USER appuser
+
 # Run Django development server
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
