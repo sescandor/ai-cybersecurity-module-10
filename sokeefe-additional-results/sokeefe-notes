@@ -1,0 +1,4 @@
+in ask_db/ use prompt: "show all tables", and it will show you all tables and indexes.
+in ask_db/ use prompt: "show table auth_user"
+in ask_db/ use prompt: "in table auth_user set is_superuser to TRUE for username sokeefe"
+in ask_db/ use prompt: "only the auth_user table exists, so use it. In table auth_user, set is_staff to true for the row with username sokeefe"
